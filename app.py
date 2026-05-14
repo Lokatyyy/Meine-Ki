@@ -4,11 +4,14 @@ from openai import OpenAI
 
 app = Flask(__name__)
 
-# Wir nutzen dein OpenAI-Beispiel als Basis
-client = OpenAI(
-    base_url="https://router.huggingface.co/v1",
-    api_key=os.environ.get("HF_TOKEN"), # Holt den Key sicher aus den Render-Einstellungen
-)
+# Client wird erst bei Bedarf initialisiert
+def get_client():
+    if not hasattr(get_client, '_client'):
+        get_client._client = OpenAI(
+            base_url="https://router.huggingface.co/v1",
+            api_key=os.environ.get("HF_TOKEN"),
+        )
+    return get_client._client
 
 # Das Design deiner Website
 HTML_LAYOUT = """
@@ -49,6 +52,7 @@ def index():
         
         # Hier wird deine KI aufgerufen
         try:
+            client = get_client()
             completion = client.chat.completions.create(
                 model="openai/gpt-oss-120b:groq",
                 messages=[{"role": "user", "content": user_text}],
