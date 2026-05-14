@@ -3,10 +3,12 @@ services:
     name: meine-ki
     runtime: python
     pythonVersion: 3.11.9
-    buildCommand: pip install -U pip setuptools wheel && pip install -r requirements.txt
-    startCommand: gunicorn app:app
+    buildCommand: pip cache purge && pip install --no-cache-dir -r requirements.txt
+    startCommand: exec gunicorn app:app
     envVars:
+      - key: PORT
+        value: 10000
       - key: PYTHONUNBUFFERED
         value: true
-      - key: PIP_NO_CACHE_DIR
+      - key: PYTHONDONTWRITEBYTECODE
         value: true
