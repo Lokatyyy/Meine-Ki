@@ -12,3 +12,5 @@ services:
         value: true
       - key: PYTHONDONTWRITEBYTECODE
         value: true
+      - key: HF_TOKEN
+        fromSecret: hf-token
