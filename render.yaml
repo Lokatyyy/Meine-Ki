@@ -2,10 +2,11 @@ services:
   - type: web
     name: meine-ki
     runtime: python
-    plan: free
     pythonVersion: 3.11.9
-    buildCommand: bash build.sh
+    buildCommand: pip install -U pip setuptools wheel && pip install -r requirements.txt
     startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
     envVars:
       - key: PYTHONUNBUFFERED
+        value: true
+      - key: PIP_NO_CACHE_DIR
         value: true
