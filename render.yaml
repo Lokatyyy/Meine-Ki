@@ -13,4 +13,4 @@ services:
       - key: PYTHONDONTWRITEBYTECODE
         value: true
       - key: HF_TOKEN
-        fromSecret: hf-token
+        sync: false
