@@ -1,4 +1,6 @@
+import html
 import os
+import re
 from flask import Flask, request, render_template_string
 import openai
 
@@ -20,6 +22,19 @@ def get_client():
         get_client._client = openai
     return get_client._client
 
+# Markdown-Formatierung für Antworten
+def format_markdown(text):
+    if not text:
+        return ""
+    escaped = html.escape(text)
+    escaped = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", escaped)
+    escaped = re.sub(r"__(.+?)__", r"<strong>\1</strong>", escaped)
+    escaped = re.sub(r"\*(.+?)\*", r"<em>\1</em>", escaped)
+    escaped = re.sub(r"_(.+?)_", r"<em>\1</em>", escaped)
+    escaped = escaped.replace("\r\n", "\n").replace("\n\n", "</p><p>")
+    escaped = escaped.replace("\n", "<br>")
+    return f"<p>{escaped}</p>"
+
 # Das Design deiner Website
 HTML_LAYOUT = """
 <!DOCTYPE html>
@@ -27,25 +42,109 @@ HTML_LAYOUT = """
 <head>
     <title>PierreAI</title>
     <style>
-        body { font-family: Arial; max-width: 500px; margin: 50px auto; text-align: center; }
-        textarea { width: 100%; height: 100px; padding: 10px; }
-        button { background: #0084ff; color: white; padding: 10px 20px; border: none; cursor: pointer; border-radius: 5px; }
-        .box { border: 1px solid #ddd; padding: 20px; border-radius: 10px; background: #f9f9f9; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: radial-gradient(circle at top left, #dbeafe, transparent 35%),
+                        radial-gradient(circle at bottom right, #e2e8f0, transparent 30%),
+                        linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+            color: #0f172a;
+        }
+        .container {
+            max-width: 760px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(148, 163, 184, 0.22);
+            border-radius: 28px;
+            box-shadow: 0 30px 80px rgba(15, 23, 42, 0.08);
+            padding: 32px;
+        }
+        h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            letter-spacing: -0.03em;
+        }
+        .lead {
+            margin: 12px 0 24px;
+            color: #475569;
+            line-height: 1.7;
+        }
+        textarea {
+            width: 100%;
+            min-height: 130px;
+            padding: 16px;
+            border: 1px solid #cbd5e1;
+            border-radius: 16px;
+            font-size: 1rem;
+            line-height: 1.6;
+            resize: vertical;
+            background: #f8fafc;
+        }
+        button {
+            background: #0f172a;
+            color: white;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s ease, background 0.2s ease;
+        }
+        button:hover {
+            transform: translateY(-1px);
+            background: #020617;
+        }
+        .hint {
+            margin-top: 12px;
+            color: #64748b;
+            font-size: 0.95rem;
+        }
+        .response {
+            margin-top: 26px;
+            text-align: left;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            padding: 22px;
+            line-height: 1.7;
+        }
+        .response strong {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 0.98rem;
+        }
+        .footer {
+            margin-top: 20px;
+            font-size: 0.94rem;
+            color: #64748b;
+        }
+        .message p {
+            margin: 0 0 1rem;
+        }
     </style>
 </head>
 <body>
-    <div class="box">
-        <h1>PierreAI</h1>
-        <form method="POST">
-            <textarea name="user_input" placeholder="Schreib hier etwas..."></textarea><br><br>
-            <button type="submit">Antwort generieren</button>
-        </form>
-        {% if antwort %}
-            <div style="margin-top:20px; text-align:left;">
-                <strong>KI sagt:</strong>
-                <p>{{ antwort }}</p>
-            </div>
-        {% endif %}
+    <div class="container">
+        <div class="card">
+            <h1>PierreAI</h1>
+            <p class="lead">Eine persönliche KI für deinen Vater Pierre: höflich, klar und mit Wissen über Tauchen, Basteln, Häuser bauen und KI.</p>
+            <form method="POST">
+                <textarea name="user_input" placeholder="Schreib hier deine Frage..."></textarea><br><br>
+                <button type="submit">PierreAI fragen</button>
+            </form>
+            <div class="hint">Die Antworten unterstützen Markdown: **Fett**, *Kursiv* und Zeilenumbrüche.</div>
+            {% if antwort_html %}
+                <div class="response">
+                    <strong>PierreAI sagt:</strong>
+                    <div class="message">{{ antwort_html|safe }}</div>
+                </div>
+            {% endif %}
+        </div>
+        <div class="footer">PierreAI ist für Vatertag optimiert und kennt Pierre, Laëtitia, Louka, Solann, Chloé und Hugo.</div>
     </div>
 </body>
 </html>
@@ -53,7 +152,7 @@ HTML_LAYOUT = """
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-    antwort = ""
+    antwort_html = ""
     if request.method == "POST":
         user_text = request.form.get("user_input")
         
@@ -68,10 +167,11 @@ def index():
                 ],
             )
             antwort = completion.choices[0].message.content
+            antwort_html = format_markdown(antwort)
         except Exception as e:
-            antwort = f"Fehler: {str(e)}"
+            antwort_html = format_markdown(f"Fehler: {str(e)}")
             
-    return render_template_string(HTML_LAYOUT, antwort=antwort)
+    return render_template_string(HTML_LAYOUT, antwort_html=antwort_html)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
