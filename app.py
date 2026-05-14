@@ -1,16 +1,15 @@
 import os
 from flask import Flask, request, render_template_string
-from openai import OpenAI
+import openai
 
 app = Flask(__name__)
 
 # Client wird erst bei Bedarf initialisiert
 def get_client():
     if not hasattr(get_client, '_client'):
-        get_client._client = OpenAI(
-            base_url="https://router.huggingface.co/v1",
-            api_key=os.environ.get("HF_TOKEN"),
-        )
+        openai.api_key = os.environ.get("HF_TOKEN")
+        openai.api_base = "https://router.huggingface.co/v1"
+        get_client._client = openai
     return get_client._client
 
 # Das Design deiner Website
@@ -53,7 +52,7 @@ def index():
         # Hier wird deine KI aufgerufen
         try:
             client = get_client()
-            completion = client.chat.completions.create(
+            completion = client.ChatCompletion.create(
                 model="openai/gpt-oss-120b:groq",
                 messages=[{"role": "user", "content": user_text}],
             )
