@@ -137,7 +137,6 @@ HTML_LAYOUT = """
                 <textarea name="user_input" placeholder="Schreib hier deine Frage..."></textarea><br><br>
                 <button type="submit">PierreAI fragen</button>
             </form>
-            <div class="hint">Die Antworten unterstützen Markdown: **Fett**, *Kursiv* und Zeilenumbrüche.</div>
             {% if antwort_html %}
                 <div class="response">
                     <strong>PierreAI sagt:</strong>
