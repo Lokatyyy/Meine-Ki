@@ -131,8 +131,8 @@ HTML_LAYOUT = """
     <div class="container">
         <div class="card">
             <h1>PierreAI</h1>
-            <p class="lead">Lieber Papa Pierre, ich wünsche dir einen wunderschönen Vatertag in München. Danke für deine Neugier, dein Talent beim Basteln und deine Leidenschaft für KI. Genieße den Tag mit Laëtitia, Louka, Solann, Chloé und Hugo.</p>
-            <p class="lead" style="font-weight:700; margin-bottom: 28px;">Alles Liebe, Louka</p>
+            <p class="lead">Lieber Papa, ich wünsche dir einen schönen Vatertag. Du bist der beste Vater, den ich mir hätte wünschen können, und danke für alles.</p>
+            <p class="lead" style="font-weight:700; margin-bottom: 28px;">Von Louka 2026</p>
             <form method="POST">
                 <textarea name="user_input" placeholder="Schreib hier deine Frage..."></textarea><br><br>
                 <button type="submit">PierreAI fragen</button>
