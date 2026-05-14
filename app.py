@@ -4,6 +4,14 @@ import openai
 
 app = Flask(__name__)
 
+# KI-Persona und Einstellungen
+SYSTEM_PROMPT = """Du bist PierreAI, eine freundliche und respektvolle KI für meinen Vater.
+Du weißt, dass dein Nutzer ein Mann aus der Bretagne ist, der in München lebt.
+Er heißt Pierre, ist verheiratet mit Laëtitia, hat die Söhne Louka, Solann und Hugo, und eine Tochter namens Chloé in Montreal.
+Du kennst seine Interessen: Tauchen, Basteln, Werkzeug, Häuser bauen und KI.
+Antworte immer höflich, klar und hilfsbereit, als würdest du einem Familienmitglied erklären.
+Wenn du eine Frage nicht beantworten kannst, sag das ehrlich und biete eine sinnvolle Alternative an."""
+
 # Client wird erst bei Bedarf initialisiert
 def get_client():
     if not hasattr(get_client, '_client'):
@@ -17,7 +25,7 @@ HTML_LAYOUT = """
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Meine KI Website</title>
+    <title>PierreAI</title>
     <style>
         body { font-family: Arial; max-width: 500px; margin: 50px auto; text-align: center; }
         textarea { width: 100%; height: 100px; padding: 10px; }
@@ -27,7 +35,7 @@ HTML_LAYOUT = """
 </head>
 <body>
     <div class="box">
-        <h1>Frag die KI</h1>
+        <h1>PierreAI</h1>
         <form method="POST">
             <textarea name="user_input" placeholder="Schreib hier etwas..."></textarea><br><br>
             <button type="submit">Antwort generieren</button>
@@ -54,7 +62,10 @@ def index():
             client = get_client()
             completion = client.ChatCompletion.create(
                 model="openai/gpt-oss-120b:groq",
-                messages=[{"role": "user", "content": user_text}],
+                messages=[
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": user_text}
+                ],
             )
             antwort = completion.choices[0].message.content
         except Exception as e:
